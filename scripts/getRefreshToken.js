@@ -1,15 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Script para obter o refresh_token do Google Ads via OAuth2.
- *
- * Uso:
- *   1. Preencha GOOGLE_ADS_CLIENT_ID e GOOGLE_ADS_CLIENT_SECRET no .env
- *   2. Execute: npm run get-token
- *   3. Abra a URL no navegador, autorize e cole o código aqui
- *   4. Copie o refresh_token para o .env
- */
-
 require('dotenv').config();
 const http = require('http');
 const { URL } = require('url');
@@ -19,11 +9,10 @@ const CLIENT_ID = process.env.GOOGLE_ADS_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_ADS_CLIENT_SECRET;
 const REDIRECT_PORT = 3333;
 const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/callback`;
-
 const SCOPES = ['https://www.googleapis.com/auth/adwords'];
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
-  console.error('❌ Preencha GOOGLE_ADS_CLIENT_ID e GOOGLE_ADS_CLIENT_SECRET no .env antes de rodar.');
+  console.error('Preencha GOOGLE_ADS_CLIENT_ID e GOOGLE_ADS_CLIENT_SECRET no .env antes de rodar.');
   process.exit(1);
 }
 
@@ -35,7 +24,7 @@ const authUrl = oauth2Client.generateAuthUrl({
   prompt: 'consent',
 });
 
-console.log('\n🔑 Google Ads OAuth2 — Obter Refresh Token\n');
+console.log('\n Google Ads OAuth2 - Obter Refresh Token\n');
 console.log('Abra esta URL no navegador:\n');
 console.log(`  ${authUrl}\n`);
 console.log(`Aguardando callback em http://localhost:${REDIRECT_PORT}/callback ...\n`);
@@ -52,7 +41,7 @@ const server = http.createServer(async (req, res) => {
   const code = url.searchParams.get('code');
   if (!code) {
     res.writeHead(400);
-    res.end('Parâmetro "code" ausente.');
+    res.end('Parametro "code" ausente.');
     return;
   }
 
@@ -62,25 +51,25 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`
       <html><body style="font-family:sans-serif;padding:40px;text-align:center">
-        <h1>✅ Token obtido com sucesso!</h1>
+        <h1>Token obtido com sucesso!</h1>
         <p>Copie o <b>refresh_token</b> abaixo e cole no seu <code>.env</code>:</p>
         <pre style="background:#f4f4f4;padding:16px;border-radius:8px;word-break:break-all">${tokens.refresh_token}</pre>
-        <p>Você pode fechar esta aba.</p>
+        <p>Voce pode fechar esta aba.</p>
       </body></html>
     `);
 
-    console.log('✅ Tokens recebidos!\n');
-    console.log(`  access_token:  ${tokens.access_token?.substring(0, 30)}...`);
+    console.log('\n=== TOKENS OBTIDOS COM SUCESSO ===\n');
     console.log(`  refresh_token: ${tokens.refresh_token}`);
+    console.log(`  access_token:  ${tokens.access_token?.substring(0, 40)}...`);
     console.log(`  scope:         ${tokens.scope}`);
     console.log(`  expiry_date:   ${new Date(tokens.expiry_date).toISOString()}\n`);
-    console.log('👉 Cole o refresh_token no .env como GOOGLE_ADS_REFRESH_TOKEN\n');
+    console.log('Cole o refresh_token no .env como GOOGLE_ADS_REFRESH_TOKEN\n');
 
     server.close(() => process.exit(0));
   } catch (err) {
     res.writeHead(500);
-    res.end(`Erro ao trocar código: ${err.message}`);
-    console.error('❌ Erro:', err.message);
+    res.end(`Erro ao trocar codigo: ${err.message}`);
+    console.error('Erro:', err.message);
   }
 });
 
