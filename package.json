@@ -1,0 +1,32 @@
+{
+  "name": "oliecare-ads-agent",
+  "version": "1.0.0",
+  "description": "OlieCare Google Ads Agent — ponte entre Claude AI e Google Ads API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "get-token": "node scripts/getRefreshToken.js"
+  },
+  "keywords": ["google-ads", "oliecare", "ai-agent", "claude"],
+  "author": "OlieCare",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "express": "^4.18.2",
+    "google-ads-api": "^16.0.0",
+    "googleapis": "^140.0.0",
+    "@anthropic-ai/sdk": "^0.27.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.11.0",
+    "node-cron": "^3.0.3",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
