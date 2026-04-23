@@ -73,6 +73,7 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
           targetSearchNetwork: true,
           targetContentNetwork: false,
         },
+        containsEuPoliticalAdvertising: 2,
       }}],
     }, { headers });
     const campaign = campaignRes.data.results[0];
