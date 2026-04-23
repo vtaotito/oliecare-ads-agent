@@ -61,6 +61,7 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
     }, { headers });
     const budgetRN = budgetRes.data.results[0].resourceName;
 
+    const sd = startDate || new Date().toISOString().split('T')[0];
     const campaignRes = await axios.post(`${baseUrl}/campaigns:mutate`, {
       operations: [{ create: {
         name,
@@ -73,8 +74,8 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
           targetSearchNetwork: true,
           targetContentNetwork: false,
         },
-        startDate: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
-        containsEuPoliticalAdvertising: false,
+        start_date: sd,
+        containsEuPoliticalAdvertising: 'NOT_EU_POLITICAL_ADVERTISING',
       }}],
     }, { headers });
     const campaign = campaignRes.data.results[0];
