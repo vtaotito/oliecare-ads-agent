@@ -62,6 +62,7 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
       target_content_network: false,
     },
     start_date: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
+    contains_eu_political_advertising: false,
   }]);
   const campaign = Array.isArray(campaignResult)
     ? campaignResult[0]
