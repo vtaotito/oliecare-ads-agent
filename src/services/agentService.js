@@ -1,10 +1,10 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 const { listCampaigns, updateCampaignStatus, updateCampaignBudget } = require('./campaignService');
 const { getAccountOverview } = require('./reportService');
 const { pauseKeyword } = require('./keywordService');
 const logger = require('../utils/logger');
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const SYSTEM_PROMPT = `Você é o agente de otimização Google Ads da OlieCare, SaaS de rotina de bebês.
 Analise os dados de campanhas e retorne ações concretas de otimização em JSON.
@@ -30,19 +30,22 @@ Sempre retorne JSON no formato:
 }`;
 
 async function analyzeAndOptimize(metricsData) {
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
     max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: 'user',
-      content: `Dados atuais das campanhas OlieCare:\n${JSON.stringify(metricsData, null, 2)}\n\nQue ações de otimização você recomenda?`
-    }]
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      {
+        role: 'user',
+        content: `Dados atuais das campanhas OlieCare:\n${JSON.stringify(metricsData, null, 2)}\n\nQue ações de otimização você recomenda?`
+      }
+    ],
+    response_format: { type: 'json_object' },
   });
 
-  const text = message.content[0].text;
+  const text = completion.choices[0].message.content;
   try {
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
+    return JSON.parse(text);
   } catch {
     return { actions: [], insights: [text], summary: 'Análise concluída' };
   }
