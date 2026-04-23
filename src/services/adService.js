@@ -4,7 +4,7 @@ const logger = require('../utils/logger');
 async function createResponsiveSearchAd(adGroupId, { headlines, descriptions, finalUrl }) {
   const customer = getCustomer();
 
-  const [ad] = await customer.adGroupAds.create([{
+  const result = await customer.adGroupAds.create([{
     ad_group: `customers/${process.env.GOOGLE_ADS_CUSTOMER_ID}/adGroups/${adGroupId}`,
     status: 'PAUSED',
     ad: {
@@ -15,6 +15,7 @@ async function createResponsiveSearchAd(adGroupId, { headlines, descriptions, fi
       final_urls: [finalUrl || process.env.OLIECARE_SITE_URL],
     },
   }]);
+  const ad = Array.isArray(result) ? result[0] : result.results[0];
 
   logger.info(`RSA criado no grupo ${adGroupId}`);
   return ad;

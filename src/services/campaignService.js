@@ -41,17 +41,20 @@ async function listCampaigns() {
 async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
   const customer = getCustomer();
 
-  const [budgetResource] = await customer.campaignBudgets.create([{
-    name: `Budget - ${name}`,
+  const budgetResult = await customer.campaignBudgets.create([{
+    name: `Budget - ${name} - ${Date.now()}`,
     amount_micros: budget * 1_000_000,
     delivery_method: 'STANDARD',
   }]);
+  const budgetResourceName = Array.isArray(budgetResult)
+    ? budgetResult[0].resource_name
+    : budgetResult.results[0].resource_name;
 
-  const [campaign] = await customer.campaigns.create([{
+  const campaignResult = await customer.campaigns.create([{
     name,
     advertising_channel_type: 'SEARCH',
     status: 'PAUSED',
-    campaign_budget: budgetResource.resource_name,
+    campaign_budget: budgetResourceName,
     manual_cpc: { enhanced_cpc_enabled: true },
     network_settings: {
       target_google_search: true,
@@ -60,6 +63,9 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
     },
     start_date: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
   }]);
+  const campaign = Array.isArray(campaignResult)
+    ? campaignResult[0]
+    : campaignResult.results[0];
 
   logger.info(`Campanha criada: ${name} (${campaign.resource_name})`);
   return campaign;
