@@ -51,35 +51,45 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
     'Content-Type': 'application/json',
   };
 
-  const budgetRes = await axios.post(`${baseUrl}/campaignBudgets:mutate`, {
-    operations: [{ create: {
-      name: `Budget - ${name} - ${Date.now()}`,
-      amountMicros: String(budget * 1_000_000),
-      deliveryMethod: 'STANDARD',
-    }}],
-  }, { headers });
-  const budgetRN = budgetRes.data.results[0].resourceName;
+  try {
+    const budgetRes = await axios.post(`${baseUrl}/campaignBudgets:mutate`, {
+      operations: [{ create: {
+        name: `Budget - ${name} - ${Date.now()}`,
+        amountMicros: String(budget * 1_000_000),
+        deliveryMethod: 'STANDARD',
+      }}],
+    }, { headers });
+    const budgetRN = budgetRes.data.results[0].resourceName;
 
-  const campaignRes = await axios.post(`${baseUrl}/campaigns:mutate`, {
-    operations: [{ create: {
-      name,
-      advertisingChannelType: 'SEARCH',
-      status: 'PAUSED',
-      campaignBudget: budgetRN,
-      manualCpc: {},
-      networkSettings: {
-        targetGoogleSearch: true,
-        targetSearchNetwork: true,
-        targetContentNetwork: false,
-      },
-      startDate: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
-      containsEuPoliticalAdvertising: false,
-    }}],
-  }, { headers });
-  const campaign = campaignRes.data.results[0];
+    const campaignRes = await axios.post(`${baseUrl}/campaigns:mutate`, {
+      operations: [{ create: {
+        name,
+        advertisingChannelType: 'SEARCH',
+        status: 'PAUSED',
+        campaignBudget: budgetRN,
+        manualCpc: {},
+        networkSettings: {
+          targetGoogleSearch: true,
+          targetSearchNetwork: true,
+          targetContentNetwork: false,
+        },
+        startDate: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
+        containsEuPoliticalAdvertising: false,
+      }}],
+    }, { headers });
+    const campaign = campaignRes.data.results[0];
 
-  logger.info(`Campanha criada: ${name} (${campaign.resourceName})`);
-  return campaign;
+    logger.info(`Campanha criada: ${name} (${campaign.resourceName})`);
+    return campaign;
+  } catch (err) {
+    const detail = err.response?.data?.error?.details?.[0]?.errors
+      || err.response?.data?.error?.message
+      || err.message;
+    logger.error(`createCampaign error: ${JSON.stringify(detail)}`);
+    const error = new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+    error.status = err.response?.status || 500;
+    throw error;
+  }
 }
 
 async function updateCampaignStatus(campaignId, status) {
