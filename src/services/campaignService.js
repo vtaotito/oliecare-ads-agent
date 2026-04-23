@@ -55,7 +55,7 @@ async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
     advertising_channel_type: 'SEARCH',
     status: 'PAUSED',
     campaign_budget: budgetResourceName,
-    manual_cpc: { enhanced_cpc_enabled: true },
+    manual_cpc: {},
     network_settings: {
       target_google_search: true,
       target_search_network: true,
