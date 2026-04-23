@@ -31,8 +31,8 @@ async function listCampaigns() {
     metrics: {
       clicks: c.metrics.clicks,
       impressions: c.metrics.impressions,
-      ctr: (c.metrics.ctr * 100).toFixed(2) + '%',
-      avgCpc: 'R$ ' + (c.metrics.average_cpc / 1_000_000).toFixed(2),
+      ctr: ((c.metrics.ctr || 0) * 100).toFixed(2) + '%',
+      avgCpc: 'R$ ' + ((c.metrics.average_cpc || 0) / 1_000_000).toFixed(2),
       cost: 'R$ ' + (c.metrics.cost_micros / 1_000_000).toFixed(2),
     }
   }));
