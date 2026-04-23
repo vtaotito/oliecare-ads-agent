@@ -1,4 +1,5 @@
-const { getCustomer } = require('../auth/googleAuth');
+const { getCustomer, getAccessToken } = require('../auth/googleAuth');
+const axios = require('axios');
 const logger = require('../utils/logger');
 
 async function listCampaigns() {
@@ -39,36 +40,45 @@ async function listCampaigns() {
 }
 
 async function createCampaign({ name, budget, targetCpa, startDate, endDate }) {
-  const customer = getCustomer();
+  const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID;
+  const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID;
+  const token = await getAccessToken();
+  const baseUrl = `https://googleads.googleapis.com/v23/customers/${customerId}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
+    'login-customer-id': loginCustomerId,
+    'Content-Type': 'application/json',
+  };
 
-  const budgetResult = await customer.campaignBudgets.create([{
-    name: `Budget - ${name} - ${Date.now()}`,
-    amount_micros: budget * 1_000_000,
-    delivery_method: 'STANDARD',
-  }]);
-  const budgetResourceName = Array.isArray(budgetResult)
-    ? budgetResult[0].resource_name
-    : budgetResult.results[0].resource_name;
+  const budgetRes = await axios.post(`${baseUrl}/campaignBudgets:mutate`, {
+    operations: [{ create: {
+      name: `Budget - ${name} - ${Date.now()}`,
+      amountMicros: String(budget * 1_000_000),
+      deliveryMethod: 'STANDARD',
+    }}],
+  }, { headers });
+  const budgetRN = budgetRes.data.results[0].resourceName;
 
-  const campaignResult = await customer.campaigns.create([{
-    name,
-    advertising_channel_type: 'SEARCH',
-    status: 'PAUSED',
-    campaign_budget: budgetResourceName,
-    manual_cpc: {},
-    network_settings: {
-      target_google_search: true,
-      target_search_network: true,
-      target_content_network: false,
-    },
-    start_date: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
-    contains_eu_political_advertising: false,
-  }]);
-  const campaign = Array.isArray(campaignResult)
-    ? campaignResult[0]
-    : campaignResult.results[0];
+  const campaignRes = await axios.post(`${baseUrl}/campaigns:mutate`, {
+    operations: [{ create: {
+      name,
+      advertisingChannelType: 'SEARCH',
+      status: 'PAUSED',
+      campaignBudget: budgetRN,
+      manualCpc: {},
+      networkSettings: {
+        targetGoogleSearch: true,
+        targetSearchNetwork: true,
+        targetContentNetwork: false,
+      },
+      startDate: startDate || new Date().toISOString().split('T')[0].replace(/-/g, ''),
+      containsEuPoliticalAdvertising: false,
+    }}],
+  }, { headers });
+  const campaign = campaignRes.data.results[0];
 
-  logger.info(`Campanha criada: ${name} (${campaign.resource_name})`);
+  logger.info(`Campanha criada: ${name} (${campaign.resourceName})`);
   return campaign;
 }
 
